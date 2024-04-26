@@ -93,10 +93,8 @@ namespace SewaPacar
             Console.WriteLine("Masukkan Tanggal Pemesanan (YYYY-MM-DD HH:mm:ss): ");
             string inputDateTime = Console.ReadLine();
 
-            // Format tanggal dan jam yang diharapkan
             string format = "yyyy-MM-dd HH:mm:ss";
 
-            // Parsing input menjadi objek DateTime sesuai format yang diharapkan
             DateTime tanggalPemesanan;
             while (!DateTime.TryParseExact(inputDateTime, format, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out tanggalPemesanan))
             {
