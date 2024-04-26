@@ -5,108 +5,70 @@ namespace SewaPacar
 {
     internal class Pegawai
     {
-        private string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog={0};User ID=sa;Password=123";
+        private string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog=SewaPacar;User ID=sa;Password=123";
 
         public void Main()
         {
             Pegawai pg = new Pegawai();
 
-            while (true)
+            try
             {
-                try
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    Console.Write("\nKetik 'k' untuk terhubung ke database atau 'E' untuk keluar dari aplikasi: ");
-                    char chr = Char.ToUpper(Console.ReadKey().KeyChar);
-                    Console.WriteLine();
+                    conn.Open();
+                    Console.Clear();
 
-                    switch (chr)
+                    while (true)
                     {
-                        case 'K':
-                            Console.Clear();
-                            Console.WriteLine("Masukkan nama database yang dituju kemudian tekan Enter: ");
-                            string dbName = Console.ReadLine().Trim();
+                        Console.WriteLine("\nMenu");
+                        Console.WriteLine("1. Tambah Data Pegawai");
+                        Console.WriteLine("2. Melihat Data Pegawai");
+                        Console.WriteLine("3. Ubah Data Pegawai");
+                        Console.WriteLine("4. Hapus Data Pegawai");
+                        Console.WriteLine("5. Keluar");
+                        Console.WriteLine("\nEnter your choice (1-5): ");
 
-                            // Membuat database jika belum ada
-                            pg.CreateDatabase(dbName);
+                        char ch = Char.ToUpper(Console.ReadKey().KeyChar);
+                        Console.WriteLine();
 
-                            using (SqlConnection conn = new SqlConnection(string.Format(connectionString, dbName)))
-                            {
-                                conn.Open();
+                        switch (ch)
+                        {
+                            case '1':
                                 Console.Clear();
-
-                                while (true)
-                                {
-                                    Console.WriteLine("\nMenu");
-                                    Console.WriteLine("1. Tambah Data Pegawai");
-                                    Console.WriteLine("2. Melihat Data Pegawai");
-                                    Console.WriteLine("3. Ubah Data Pegawai");
-                                    Console.WriteLine("4. Hapus Data Pegawai");
-                                    Console.WriteLine("5. Keluar");
-                                    Console.WriteLine("\nEnter your choice (1-5): ");
-
-                                    char ch = Char.ToUpper(Console.ReadKey().KeyChar);
-                                    Console.WriteLine();
-
-                                    switch (ch)
-                                    {
-                                        case '1':
-                                            Console.Clear();
-                                            pg.InsertPegawai(conn);
-                                            break;
-                                        case '2':
-                                            Console.Clear();
-                                            Console.WriteLine("Data Pegawai\n");
-                                            pg.ReadPegawai(conn);
-                                            break;
-                                        case '3':
-                                            Console.Clear();
-                                            pg.UpdatePegawai(conn);
-                                            break;
-                                        case '4':
-                                            Console.Clear();
-                                            pg.DeletePegawai(conn);
-                                            break;
-                                        case '5':
-                                            conn.Close();
-                                            Console.Clear();
-                                            Console.WriteLine("Exiting application...");
-                                            return;
-                                        default:
-                                            Console.Clear();
-                                            Console.WriteLine("\nInvalid option");
-                                            break;
-                                    }
-                                }
-                            }
-
-                        case 'E':
-                            Console.WriteLine("Exiting application...");
-                            return;
-                        default:
-                            Console.WriteLine("\nInvalid option");
-                            break;
+                                pg.InsertPegawai(conn);
+                                break;
+                            case '2':
+                                Console.Clear();
+                                Console.WriteLine("Data Pegawai\n");
+                                pg.ReadPegawai(conn);
+                                break;
+                            case '3':
+                                Console.Clear();
+                                pg.UpdatePegawai(conn);
+                                break;
+                            case '4':
+                                Console.Clear();
+                                pg.DeletePegawai(conn);
+                                break;
+                            case '5':
+                                conn.Close();
+                                Console.Clear();
+                                Console.WriteLine("Exiting application...");
+                                return;
+                            default:
+                                Console.Clear();
+                                Console.WriteLine("\nInvalid option");
+                                break;
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.Clear();
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error: {ex.Message}\n");
-                    Console.ResetColor();
-                }
             }
-        }
-
-        public void CreateDatabase(string dbName)
-        {
-            string masterConnectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog=master;User ID=sa;Password=123";
-            string createDbQuery = $"IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = '{dbName}') CREATE DATABASE {dbName}";
-
-            using (SqlConnection conn = new SqlConnection(masterConnectionString))
+            catch (Exception ex)
             {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand(createDbQuery, conn);
-                cmd.ExecuteNonQuery();
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error: {ex.Message}\n");
+                Console.ResetColor();
             }
         }
 

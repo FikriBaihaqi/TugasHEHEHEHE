@@ -5,84 +5,61 @@ namespace SewaPacar
 {
     internal class JamKerja
     {
+        private const string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog={0};User ID=sa;Password=123";
+
         public void Main()
         {
             JamKerja jk = new JamKerja();
-            string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog={0};User ID=sa;Password=123";
 
-            while (true)
+            try
             {
-                try
+               
+                using (SqlConnection conn = new SqlConnection(string.Format(connectionString, "SewaPacar")))
                 {
-                    Console.Write("\nKetik 'k' untuk terhubung ke database atau 'E' untuk keluar dari aplikasi: ");
-                    char chr = Char.ToUpper(Console.ReadKey().KeyChar);
-                    Console.WriteLine();
+                    conn.Open();
+                    Console.Clear();
 
-                    switch (chr)
+                    while (true)
                     {
-                        case 'K':
-                            Console.Clear();
-                            Console.WriteLine("Masukkan nama database yang dituju kemudian tekan Enter: ");
-                            string dbName = Console.ReadLine().Trim();
+                        Console.WriteLine("\nMenu");
+                        Console.WriteLine("1. Tambah Data Jam Kerja");
+                        Console.WriteLine("2. Melihat Data Jam Kerja");
+                        Console.WriteLine("3. Keluar");
+                        Console.WriteLine("\nEnter your choice (1-3): ");
 
-                            // Membuat database jika belum ada
-                            jk.CreateDatabase(dbName);
+                        char ch = Char.ToUpper(Console.ReadKey().KeyChar);
+                        Console.WriteLine();
 
-                            using (SqlConnection conn = new SqlConnection(string.Format(connectionString, dbName)))
-                            {
-                                conn.Open();
+                        switch (ch)
+                        {
+                            case '1':
                                 Console.Clear();
-
-                                while (true)
-                                {
-                                    Console.WriteLine("\nMenu");
-                                    Console.WriteLine("1. Tambah Data Jam Kerja");
-                                    Console.WriteLine("2. Melihat Data Jam Kerja");
-                                    Console.WriteLine("3. Keluar");
-                                    Console.WriteLine("\nEnter your choice (1-3): ");
-
-                                    char ch = Char.ToUpper(Console.ReadKey().KeyChar);
-                                    Console.WriteLine();
-
-                                    switch (ch)
-                                    {
-                                        case '1':
-                                            Console.Clear();
-                                            jk.InsertJamKerja(conn);
-                                            break;
-                                        case '2':
-                                            Console.Clear();
-                                            Console.WriteLine("Data Jam Kerja\n");
-                                            jk.ReadJamKerja(conn);
-                                            break;
-                                        case '3':
-                                            conn.Close();
-                                            Console.Clear();
-                                            Console.WriteLine("Exiting application...");
-                                            return;
-                                        default:
-                                            Console.Clear();
-                                            Console.WriteLine("\nInvalid option");
-                                            break;
-                                    }
-                                }
-                            }
-
-                        case 'E':
-                            Console.WriteLine("Exiting application...");
-                            return;
-                        default:
-                            Console.WriteLine("\nInvalid option");
-                            break;
+                                jk.InsertJamKerja(conn);
+                                break;
+                            case '2':
+                                Console.Clear();
+                                Console.WriteLine("Data Jam Kerja\n");
+                                jk.ReadJamKerja(conn);
+                                break;
+                            case '3':
+                                conn.Close();
+                                Console.Clear();
+                                Console.WriteLine("Exiting application...");
+                                return;
+                            default:
+                                Console.Clear();
+                                Console.WriteLine("\nInvalid option");
+                                break;
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.Clear();
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error: {ex.Message}\n");
-                    Console.ResetColor();
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error: {ex.Message}\n");
+                Console.ResetColor();
             }
         }
 

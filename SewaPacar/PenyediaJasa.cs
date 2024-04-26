@@ -5,100 +5,77 @@ namespace SewaPacar
 {
     internal class PenyediaJasa
     {
-        private string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog={0};User ID=sa;Password=123";
+       
+        private const string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog=SewaPacar;User ID=sa;Password=123";
 
         public void Main()
         {
             PenyediaJasa pr = new PenyediaJasa();
 
-            while (true)
+            try
             {
-                try
+
+                using (SqlConnection conn = new SqlConnection(string.Format(connectionString)))
                 {
-                    Console.Write("\nKetik 'k' untuk terhubung ke database atau 'E' untuk keluar dari aplikasi: ");
-                    char chr = Char.ToUpper(Console.ReadKey().KeyChar);
-                    Console.WriteLine();
+                    conn.Open();
+                    Console.Clear();
 
-                    switch (chr)
+                    while (true)
                     {
-                        case 'K':
-                            Console.Clear();
-                            Console.WriteLine("Masukkan nama database yang dituju kemudian tekan Enter: ");
-                            string dbName = Console.ReadLine().Trim();
+                        Console.WriteLine("\nMenu");
+                        Console.WriteLine("1. Melihat Seluruh Data");
+                        Console.WriteLine("2. Tambah Data Penyedia Jasa");
+                        Console.WriteLine("3. Hapus Data Penyedia Jasa");
+                        Console.WriteLine("4. Cari Data Penyedia Jasa");
+                        Console.WriteLine("5. Perbarui Data Penyedia Jasa");
+                        Console.WriteLine("6. Keluar");
+                        Console.WriteLine("\nEnter your choice (1-6): ");
 
-                            // Membuat database jika belum ada
-                            pr.CreateDatabase(dbName);
+                        char ch = Char.ToUpper(Console.ReadKey().KeyChar);
+                        Console.WriteLine();
 
-                            using (SqlConnection conn = new SqlConnection(string.Format(connectionString, dbName)))
-                            {
-                                conn.Open();
+                        switch (ch)
+                        {
+                            case '1':
                                 Console.Clear();
-
-                                while (true)
-                                {
-                                    Console.WriteLine("\nMenu");
-                                    Console.WriteLine("1. Melihat Seluruh Data");
-                                    Console.WriteLine("2. Tambah Data Penyedia Jasa");
-                                    Console.WriteLine("3. Hapus Data Penyedia Jasa");
-                                    Console.WriteLine("4. Cari Data Penyedia Jasa");
-                                    Console.WriteLine("5. Perbarui Data Penyedia Jasa");
-                                    Console.WriteLine("6. Keluar");
-                                    Console.WriteLine("\nEnter your choice (1-6): ");
-
-                                    char ch = Char.ToUpper(Console.ReadKey().KeyChar);
-                                    Console.WriteLine();
-
-                                    switch (ch)
-                                    {
-                                        case '1':
-                                            Console.Clear();
-                                            Console.WriteLine("Data Penyedia Jasa\n");
-                                            pr.ReadPenyediaJasa(conn);
-                                            break;
-                                        case '2':
-                                            Console.Clear();
-                                            pr.InsertPenyediaJasa(conn);
-                                            break;
-                                        case '3':
-                                            Console.Clear();
-                                            pr.DeletePenyediaJasa(conn);
-                                            break;
-                                        case '4':
-                                            Console.Clear();
-                                            pr.SearchPenyediaJasa(conn);
-                                            break;
-                                        case '5':
-                                            Console.Clear();
-                                            pr.UpdatePenyediaJasa(conn);
-                                            break;
-                                        case '6':
-                                            conn.Close();
-                                            Console.Clear();
-                                            Console.WriteLine("Exiting application...");
-                                            return;
-                                        default:
-                                            Console.Clear();
-                                            Console.WriteLine("\nInvalid option");
-                                            break;
-                                    }
-                                }
-                            }
-
-                        case 'E':
-                            Console.WriteLine("Exiting application...");
-                            return;
-                        default:
-                            Console.WriteLine("\nInvalid option");
-                            break;
+                                Console.WriteLine("Data Penyedia Jasa\n");
+                                pr.ReadPenyediaJasa(conn);
+                                break;
+                            case '2':
+                                Console.Clear();
+                                pr.InsertPenyediaJasa(conn);
+                                break;
+                            case '3':
+                                Console.Clear();
+                                pr.DeletePenyediaJasa(conn);
+                                break;
+                            case '4':
+                                Console.Clear();
+                                pr.SearchPenyediaJasa(conn);
+                                break;
+                            case '5':
+                                Console.Clear();
+                                pr.UpdatePenyediaJasa(conn);
+                                break;
+                            case '6':
+                                conn.Close();
+                                Console.Clear();
+                                Console.WriteLine("Exiting application...");
+                                return;
+                            default:
+                                Console.Clear();
+                                Console.WriteLine("\nInvalid option");
+                                break;
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.Clear();
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error: {ex.Message}\n");
-                    Console.ResetColor();
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error: {ex.Message}\n");
+                Console.ResetColor();
             }
         }
 
@@ -204,7 +181,8 @@ namespace SewaPacar
             Console.WriteLine("Masukkan ID Penyedia Jasa yang ingin diperbarui: ");
             string idToUpdate = Console.ReadLine();
 
-            string selectQuery = "SELECT Nama_PenyediaJasa FROM PenyediaJasa WHERE ID_PenyediaJasa = @id";
+       
+            string selectQuery = "SELECT Nama_PenyediaJasa, email, no_telepon FROM PenyediaJasa WHERE ID_PenyediaJasa = @id";
             SqlCommand selectCmd = new SqlCommand(selectQuery, con);
             selectCmd.Parameters.AddWithValue("@id", idToUpdate);
 
@@ -213,20 +191,38 @@ namespace SewaPacar
                 if (reader.Read())
                 {
                     string currentNama = reader.GetString(0);
+                    string currentEmail = reader.GetString(1);
+                    string currentNoTelepon = reader.GetString(2);
 
-                    Console.WriteLine($"Data saat ini - Nama: {currentNama}");
+                    Console.WriteLine($"Data saat ini - Nama: {currentNama}, Email: {currentEmail}, No Telepon: {currentNoTelepon}");
 
-                    Console.WriteLine("\nMasukkan informasi baru:");
+                    Console.WriteLine("\nMasukkan informasi baru (kosongkan jika tidak ingin mengubah):");
 
-                    Console.WriteLine("Nama Penyedia Jasa (kosongkan jika tidak ingin mengubah): ");
+                    Console.WriteLine("Nama Penyedia Jasa: ");
                     string newNama = Console.ReadLine();
                     if (string.IsNullOrWhiteSpace(newNama))
                         newNama = currentNama;
 
-                    string updateQuery = "UPDATE PenyediaJasa SET Nama_PenyediaJasa = @nama WHERE ID_PenyediaJasa = @id";
+                    Console.WriteLine("Email: ");
+                    string newEmail = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(newEmail))
+                        newEmail = currentEmail;
+
+                    Console.WriteLine("No Telepon: ");
+                    string newNoTelepon = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(newNoTelepon))
+                        newNoTelepon = currentNoTelepon;
+
+                
+                    reader.Close();
+
+                    
+                    string updateQuery = "UPDATE PenyediaJasa SET Nama_PenyediaJasa = @nama, email = @email, no_telepon = @noTelepon WHERE ID_PenyediaJasa = @id";
                     SqlCommand updateCmd = new SqlCommand(updateQuery, con);
                     updateCmd.Parameters.AddWithValue("@id", idToUpdate);
                     updateCmd.Parameters.AddWithValue("@nama", newNama);
+                    updateCmd.Parameters.AddWithValue("@email", newEmail);
+                    updateCmd.Parameters.AddWithValue("@noTelepon", newNoTelepon);
 
                     int rowsAffected = updateCmd.ExecuteNonQuery();
                     if (rowsAffected > 0)

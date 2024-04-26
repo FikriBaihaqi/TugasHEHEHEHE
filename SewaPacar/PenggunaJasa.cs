@@ -5,7 +5,8 @@ namespace SewaPacar
 {
     internal class PenggunaJasa
     {
-        private string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog={0};User ID=sa;Password=123";
+
+        private string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog=SewaPacar;User ID=sa;Password=123";
 
         public void Main()
         {
@@ -15,76 +16,54 @@ namespace SewaPacar
             {
                 try
                 {
-                    Console.Write("\nKetik 'k' untuk terhubung ke database atau 'E' untuk keluar dari aplikasi: ");
-                    char chr = Char.ToUpper(Console.ReadKey().KeyChar);
-                    Console.WriteLine();
-
-                    switch (chr)
+                    Console.Clear();
+                    using (SqlConnection conn = new SqlConnection(connectionString))
                     {
-                        case 'K':
-                            Console.Clear();
-                            Console.WriteLine("Masukkan nama database yang dituju kemudian tekan Enter: ");
-                            string dbName = Console.ReadLine().Trim();
+                        conn.Open();
 
-                            // Membuat database jika belum ada
-                            pj.CreateDatabase(dbName);
+                        while (true)
+                        {
+                            Console.WriteLine("\nMenu");
+                            Console.WriteLine("1. Insert Pengguna Jasa");
+                            Console.WriteLine("2. Read Pengguna Jasa");
+                            Console.WriteLine("3. Update Pengguna Jasa");
+                            Console.WriteLine("4. Delete Pengguna Jasa");
+                            Console.WriteLine("5. Exit");
+                            Console.WriteLine("\nEnter your choice (1-5): ");
 
-                            using (SqlConnection conn = new SqlConnection(string.Format(connectionString, dbName)))
+                            char ch = Char.ToUpper(Console.ReadKey().KeyChar);
+                            Console.WriteLine();
+
+                            switch (ch)
                             {
-                                conn.Open();
-                                Console.Clear();
-
-                                while (true)
-                                {
-                                    Console.WriteLine("\nMenu");
-                                    Console.WriteLine("1. Tambah Data Pengguna Jasa");
-                                    Console.WriteLine("2. Melihat Data Pengguna Jasa");
-                                    Console.WriteLine("3. Update Data Pengguna Jasa");
-                                    Console.WriteLine("4. Hapus Data Pengguna Jasa");
-                                    Console.WriteLine("5. Keluar");
-                                    Console.WriteLine("\nEnter your choice (1-5): ");
-
-                                    char ch = Char.ToUpper(Console.ReadKey().KeyChar);
-                                    Console.WriteLine();
-
-                                    switch (ch)
-                                    {
-                                        case '1':
-                                            Console.Clear();
-                                            pj.InsertPenggunaJasa(conn);
-                                            break;
-                                        case '2':
-                                            Console.Clear();
-                                            Console.WriteLine("Data Pengguna Jasa\n");
-                                            pj.ReadPenggunaJasa(conn);
-                                            break;
-                                        case '3':
-                                            Console.Clear();
-                                            pj.UpdatePenggunaJasa(conn);
-                                            break;
-                                        case '4':
-                                            Console.Clear();
-                                            pj.DeletePenggunaJasa(conn);
-                                            break;
-                                        case '5':
-                                            conn.Close();
-                                            Console.Clear();
-                                            Console.WriteLine("Exiting application...");
-                                            return;
-                                        default:
-                                            Console.Clear();
-                                            Console.WriteLine("\nInvalid option");
-                                            break;
-                                    }
-                                }
+                                case '1':
+                                    Console.Clear();
+                                    pj.InsertPenggunaJasa(conn);
+                                    break;
+                                case '2':
+                                    Console.Clear();
+                                    Console.WriteLine("Pengguna Jasa Data\n");
+                                    pj.ReadPenggunaJasa(conn);
+                                    break;
+                                case '3':
+                                    Console.Clear();
+                                    pj.UpdatePenggunaJasa(conn);
+                                    break;
+                                case '4':
+                                    Console.Clear();
+                                    pj.DeletePenggunaJasa(conn);
+                                    break;
+                                case '5':
+                                    conn.Close();
+                                    Console.Clear();
+                                    Console.WriteLine("Exiting application...");
+                                    return;
+                                default:
+                                    Console.Clear();
+                                    Console.WriteLine("\nInvalid option");
+                                    break;
                             }
-
-                        case 'E':
-                            Console.WriteLine("Exiting application...");
-                            return;
-                        default:
-                            Console.WriteLine("\nInvalid option");
-                            break;
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -93,32 +72,6 @@ namespace SewaPacar
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Error: {ex.Message}\n");
                     Console.ResetColor();
-                }
-            }
-        }
-
-        public void CreateDatabase(string dbName)
-        {
-            string masterConnectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog=master;User ID=sa;Password=123";
-            string createDbQuery = $"IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = '{dbName}') CREATE DATABASE {dbName}";
-
-            using (SqlConnection conn = new SqlConnection(masterConnectionString))
-            {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand(createDbQuery, conn);
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public void ReadPenggunaJasa(SqlConnection con)
-        {
-            SqlCommand cmd = new SqlCommand("SELECT ID_PenggunaJasa, Nama_PenggunaJasa, JenisKelamin_PenggunaJasa, email_Cust, no_telepon_Cust FROM PenggunaJasa", con);
-
-            using (SqlDataReader reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    Console.WriteLine($"ID Pengguna Jasa: {reader.GetString(0)}, Nama: {reader.GetString(1)}, Jenis Kelamin: {reader.GetString(2)}, Email: {reader.GetString(3)}, No Telepon: {reader.GetString(4)}");
                 }
             }
         }
@@ -148,6 +101,19 @@ namespace SewaPacar
 
             cmd.ExecuteNonQuery();
             Console.WriteLine("Data Pengguna Jasa berhasil ditambahkan");
+        }
+
+        public void ReadPenggunaJasa(SqlConnection con)
+        {
+            SqlCommand cmd = new SqlCommand("SELECT ID_PenggunaJasa, Nama_PenggunaJasa, JenisKelamin_PenggunaJasa, email_Cust, no_telepon_Cust FROM PenggunaJasa", con);
+
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine($"ID Pengguna Jasa: {reader.GetString(0)}, Nama: {reader.GetString(1)}, Jenis Kelamin: {reader.GetString(2)}, Email: {reader.GetString(3)}, No Telepon: {reader.GetString(4)}");
+                }
+            }
         }
 
         public void UpdatePenggunaJasa(SqlConnection con)
