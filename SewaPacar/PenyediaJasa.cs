@@ -5,7 +5,6 @@ namespace SewaPacar
 {
     internal class PenyediaJasa
     {
-       
         private const string connectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog=SewaPacar;User ID=sa;Password=123";
 
         public void Main()
@@ -14,8 +13,7 @@ namespace SewaPacar
 
             try
             {
-
-                using (SqlConnection conn = new SqlConnection(string.Format(connectionString)))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
                     Console.Clear();
@@ -29,7 +27,7 @@ namespace SewaPacar
                         Console.WriteLine("4. Cari Data Penyedia Jasa");
                         Console.WriteLine("5. Perbarui Data Penyedia Jasa");
                         Console.WriteLine("6. Keluar");
-                        Console.WriteLine("\nEnter your choice (1-6): ");
+                        Console.WriteLine("\nMasukan Pilihan (1-6): ");
 
                         char ch = Char.ToUpper(Console.ReadKey().KeyChar);
                         Console.WriteLine();
@@ -47,6 +45,8 @@ namespace SewaPacar
                                 break;
                             case '3':
                                 Console.Clear();
+                                Console.WriteLine("Data Penyedia Jasa\n");
+                                pr.ReadPenyediaJasa(conn);
                                 pr.DeletePenyediaJasa(conn);
                                 break;
                             case '4':
@@ -55,6 +55,8 @@ namespace SewaPacar
                                 break;
                             case '5':
                                 Console.Clear();
+                                Console.WriteLine("Data Penyedia Jasa\n");
+                                pr.ReadPenyediaJasa(conn);
                                 pr.UpdatePenyediaJasa(conn);
                                 break;
                             case '6':
@@ -79,19 +81,6 @@ namespace SewaPacar
             }
         }
 
-        public void CreateDatabase(string dbName)
-        {
-            string masterConnectionString = "Data Source=LOSTVAYNE\\BAIHAQI;Initial Catalog=master;User ID=sa;Password=123";
-            string createDbQuery = $"IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = '{dbName}') CREATE DATABASE {dbName}";
-
-            using (SqlConnection conn = new SqlConnection(masterConnectionString))
-            {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand(createDbQuery, conn);
-                cmd.ExecuteNonQuery();
-            }
-        }
-
         public void ReadPenyediaJasa(SqlConnection con)
         {
             SqlCommand cmd = new SqlCommand("SELECT ID_PenyediaJasa, Nama_PenyediaJasa, JenisKelamin_PenyediaJasa, Biaya_per_Jam, email, no_telepon FROM PenyediaJasa", con);
@@ -108,19 +97,69 @@ namespace SewaPacar
         public void InsertPenyediaJasa(SqlConnection con)
         {
             Console.WriteLine("Input data Penyedia Jasa\n");
-            Console.WriteLine("Masukkan ID Penyedia Jasa (9 karakter): ");
+            Console.WriteLine("Masukkan ID Penyedia Jasa (9 karakter, angka saja): ");
             string id = Console.ReadLine();
+            if (!IsValidNumericId(id))
+            {
+                Console.WriteLine("ID Penyedia Jasa harus terdiri dari 9 karakter angka.");
+                return;
+            }
+            if (IsIdExists(con, id))
+            {
+                Console.WriteLine("ID Penyedia Jasa sudah ada dalam database.");
+                return;
+            }
+
             Console.WriteLine("Masukkan Nama Penyedia Jasa: ");
             string nama = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(nama))
+            {
+                Console.WriteLine("Nama Penyedia Jasa tidak boleh kosong.");
+                return;
+            }
+
             Console.WriteLine("Masukkan Jenis Kelamin (L/P): ");
             char jenisKelamin = Char.ToUpper(Console.ReadKey().KeyChar);
             Console.WriteLine();
+            if (jenisKelamin != 'L' && jenisKelamin != 'P')
+            {
+                Console.WriteLine("Jenis Kelamin harus diisi dengan 'L' atau 'P'.");
+                return;
+            }
+
             Console.WriteLine("Masukkan Biaya per Jam: ");
             string biayaPerJam = Console.ReadLine();
+            if (!IsValidNumeric(biayaPerJam))
+            {
+                Console.WriteLine("Biaya per Jam harus berupa angka.");
+                return;
+            }
+
             Console.WriteLine("Masukkan Email: ");
             string email = Console.ReadLine();
+            if (!IsValidEmail(email))
+            {
+                Console.WriteLine("Format Email tidak valid.");
+                return;
+            }
+            if (IsEmailExists(con, email))
+            {
+                Console.WriteLine("Email sudah ada dalam database.");
+                return;
+            }
+
             Console.WriteLine("Masukkan No Telepon: ");
             string noTelepon = Console.ReadLine();
+            if (!IsValidNumeric(noTelepon))
+            {
+                Console.WriteLine("Nomor Telepon harus berupa angka.");
+                return;
+            }
+            if (IsNoTeleponExists(con, noTelepon))
+            {
+                Console.WriteLine("Nomor Telepon sudah ada dalam database.");
+                return;
+            }
 
             string query = "INSERT INTO PenyediaJasa (ID_PenyediaJasa, Nama_PenyediaJasa, JenisKelamin_PenyediaJasa, Biaya_per_Jam, email, no_telepon) VALUES (@id, @nama, @jenisKelamin, @biayaPerJam, @email, @noTelepon)";
             SqlCommand cmd = new SqlCommand(query, con);
@@ -181,7 +220,6 @@ namespace SewaPacar
             Console.WriteLine("Masukkan ID Penyedia Jasa yang ingin diperbarui: ");
             string idToUpdate = Console.ReadLine();
 
-       
             string selectQuery = "SELECT Nama_PenyediaJasa, email, no_telepon FROM PenyediaJasa WHERE ID_PenyediaJasa = @id";
             SqlCommand selectCmd = new SqlCommand(selectQuery, con);
             selectCmd.Parameters.AddWithValue("@id", idToUpdate);
@@ -213,10 +251,8 @@ namespace SewaPacar
                     if (string.IsNullOrWhiteSpace(newNoTelepon))
                         newNoTelepon = currentNoTelepon;
 
-                
                     reader.Close();
 
-                    
                     string updateQuery = "UPDATE PenyediaJasa SET Nama_PenyediaJasa = @nama, email = @email, no_telepon = @noTelepon WHERE ID_PenyediaJasa = @id";
                     SqlCommand updateCmd = new SqlCommand(updateQuery, con);
                     updateCmd.Parameters.AddWithValue("@id", idToUpdate);
@@ -235,6 +271,64 @@ namespace SewaPacar
                     Console.WriteLine("Data Penyedia Jasa tidak ditemukan");
                 }
             }
+        }
+
+        private bool IsValidNumericId(string id)
+        {
+            return id.Length == 9 && IsNumeric(id);
+        }
+
+        private bool IsNumeric(string input)
+        {
+            foreach (char c in input)
+            {
+                if (!Char.IsDigit(c))
+                    return false;
+            }
+            return true;
+        }
+
+        private bool IsValidNumeric(string input)
+        {
+            decimal result;
+            return Decimal.TryParse(input, out result);
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool IsIdExists(SqlConnection con, string id)
+        {
+            SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM PenyediaJasa WHERE ID_PenyediaJasa = @id", con);
+            cmd.Parameters.AddWithValue("@id", id);
+            int count = (int)cmd.ExecuteScalar();
+            return count > 0;
+        }
+
+        private bool IsEmailExists(SqlConnection con, string email)
+        {
+            SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM PenyediaJasa WHERE email = @email", con);
+            cmd.Parameters.AddWithValue("@email", email);
+            int count = (int)cmd.ExecuteScalar();
+            return count > 0;
+        }
+
+        private bool IsNoTeleponExists(SqlConnection con, string noTelepon)
+        {
+            SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM PenyediaJasa WHERE no_telepon = @noTelepon", con);
+            cmd.Parameters.AddWithValue("@noTelepon", noTelepon);
+            int count = (int)cmd.ExecuteScalar();
+            return count > 0;
         }
     }
 }

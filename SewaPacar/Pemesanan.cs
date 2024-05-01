@@ -24,7 +24,7 @@ namespace SewaPacar
                         Console.WriteLine("1. Tambah Data Pemesanan");
                         Console.WriteLine("2. Melihat Data Pemesanan");
                         Console.WriteLine("3. Keluar");
-                        Console.WriteLine("\nEnter your choice (1-3): ");
+                        Console.WriteLine("\nMasukan Pilihan (1-3): ");
 
                         char ch = Char.ToUpper(Console.ReadKey().KeyChar);
                         Console.WriteLine();
@@ -62,7 +62,6 @@ namespace SewaPacar
             }
         }
 
-
         public void ReadPemesanan(SqlConnection con)
         {
             SqlCommand cmd = new SqlCommand("SELECT ID_Pemesanan, KD_Pegawai, ID_PenggunaJasa, Nama_PenggunaJasa, Nama_PenyediaJasa, Tanggal_Pemesanan FROM Pemesanan", con);
@@ -80,25 +79,55 @@ namespace SewaPacar
         public void InsertPemesanan(SqlConnection con)
         {
             Console.WriteLine("Input data Pemesanan\n");
-            Console.WriteLine("Masukkan ID Pemesanan (8 karakter): ");
-            string idPemesanan = Console.ReadLine();
             Console.WriteLine("Masukkan Kode Pegawai (9 karakter): ");
             string kodePegawai = Console.ReadLine();
+
+            // Validasi Kode Pegawai
+            if (string.IsNullOrEmpty(kodePegawai) || kodePegawai.Length != 9)
+            {
+                Console.WriteLine("Kode Pegawai harus terdiri dari 9 karakter.");
+                return;
+            }
+
+            // Periksa apakah Kode Pegawai sudah ada dalam database
+            if (!IsKodePegawaiExists(con, kodePegawai))
+            {
+                Console.WriteLine("Kode Pegawai tidak valid atau tidak ditemukan dalam database.");
+                return;
+            }
+
+            Console.WriteLine("Masukkan ID Pemesanan (8 karakter): ");
+            string idPemesanan = Console.ReadLine();
+
+            // Validasi ID Pemesanan
+            if (string.IsNullOrEmpty(idPemesanan) || idPemesanan.Length != 8)
+            {
+                Console.WriteLine("ID Pemesanan harus terdiri dari 8 karakter.");
+                return;
+            }
+
+            // Periksa apakah ID Pemesanan sudah ada dalam database
+            if (IsIdPemesananExists(con, idPemesanan))
+            {
+                Console.WriteLine("ID Pemesanan sudah ada dalam database.");
+                return;
+            }
+
             Console.WriteLine("Masukkan ID Pengguna Jasa (9 karakter): ");
             string idPenggunaJasa = Console.ReadLine();
             Console.WriteLine("Masukkan Nama Pengguna Jasa: ");
             string namaPenggunaJasa = Console.ReadLine();
             Console.WriteLine("Masukkan Nama Penyedia Jasa: ");
             string namaPenyediaJasa = Console.ReadLine();
-            Console.WriteLine("Masukkan Tanggal Pemesanan (YYYY-MM-DD HH:mm:ss): ");
+            Console.WriteLine("Masukkan Tanggal Pemesanan (YYYY-MM-DD): ");
             string inputDateTime = Console.ReadLine();
 
-            string format = "yyyy-MM-dd HH:mm:ss";
+            string format = "yyyy-MM-dd";
 
             DateTime tanggalPemesanan;
             while (!DateTime.TryParseExact(inputDateTime, format, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out tanggalPemesanan))
             {
-                Console.WriteLine("Format tanggal dan jam tidak valid. Masukkan kembali (YYYY-MM-DD HH:mm:ss): ");
+                Console.WriteLine("Format tanggal dan jam tidak valid. Masukkan kembali (YYYY-MM-DD): ");
                 inputDateTime = Console.ReadLine();
             }
 
@@ -114,6 +143,22 @@ namespace SewaPacar
 
             cmd.ExecuteNonQuery();
             Console.WriteLine("Data Pemesanan berhasil ditambahkan");
+        }
+
+        private bool IsIdPemesananExists(SqlConnection con, string idPemesanan)
+        {
+            SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Pemesanan WHERE ID_Pemesanan = @idPemesanan", con);
+            cmd.Parameters.AddWithValue("@idPemesanan", idPemesanan);
+            int count = (int)cmd.ExecuteScalar();
+            return count > 0;
+        }
+
+        private bool IsKodePegawaiExists(SqlConnection con, string kodePegawai)
+        {
+            SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Pegawai WHERE Kd_Pegawai = @kodePegawai", con);
+            cmd.Parameters.AddWithValue("@kodePegawai", kodePegawai);
+            int count = (int)cmd.ExecuteScalar();
+            return count > 0;
         }
     }
 }
